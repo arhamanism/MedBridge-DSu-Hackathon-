@@ -105,7 +105,7 @@ async def analyze_prescription(image: UploadFile = File(...)):
             "Content-Type": "application/json"
         },
         json={
-            "model": "llama-3.2-11b-vision-preview",
+            "model": "llama-3.2-11b-vision-instruct",
             "messages": [
                 {
                     "role": "user",
