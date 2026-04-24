@@ -1,4 +1,4 @@
-# HealthAI Pakistan 🇵🇰
+# MedBridge 🇵🇰
 
 **AI-Powered Health Assistant for Pakistani Healthcare**
 
@@ -57,9 +57,9 @@ A comprehensive health assistant that helps users make informed medical decision
 ## 📁 Project Structure
 
 ```
-HealthAI-Pakistan/
+MedBridge/
 ├── backend/
-│   ├── main.py                    # Main FastAPI application
+│   ├── app.py                     # Main FastAPI application
 │   ├── requirements.txt           # Python dependencies
 │   └── modules/
 │       ├── symptom_analyzer.py    # Symptom analysis logic
@@ -95,7 +95,7 @@ HealthAI-Pakistan/
 ```bash
 # Clone the repository
 git clone <your-repo-url>
-cd HealthAI-Pakistan
+cd MedBridge
 
 # Set up Python environment
 cd backend
@@ -110,7 +110,7 @@ pip install -r requirements.txt
 echo "GROQ_API_KEY=your_api_key_here" > .env
 
 # Start backend
-uvicorn main:app --reload --port 8000
+uvicorn app:app --reload --port 8000
 ```
 
 ### Frontend Setup
@@ -178,7 +178,7 @@ Key test cases:
 3. Connect your GitHub repository
 4. **Root Directory**: `backend`
 5. **Build Command**: `pip install -r requirements.txt`
-6. **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+6. **Start Command**: `uvicorn app:app --host 0.0.0.0 --port $PORT`
 7. **Environment Variables**: Add `GROQ_API_KEY`
 
 ### Frontend Deployment (Vercel)
