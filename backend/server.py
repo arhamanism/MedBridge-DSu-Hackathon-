@@ -112,7 +112,7 @@ async def analyze_prescription(image: UploadFile = File(...)):
                     "content": [
                         {
                             "type": "text",
-                            "text": "This is a medical prescription. \nExtract all medicine names, dosages, and frequency.\nIf handwriting is unclear make your best guess.\nReturn as JSON only:\n{\n  \"medicines\": [\n    {\"name\": \"medicine name\", \"dosage\": \"500mg\", \"frequency\": \"twice daily\", \"confidence\": \"high/medium/low\"}\n  ],\n  \"doctor_notes\": \"any other instructions visible\"\n}"
+                            "text": "This is a medical prescription. \nExtract all medicine names, dosages, frequency, and any indications/reasons written next to them (e.g. 'for gas', 'painkiller').\nIf handwriting is unclear make your best guess.\nReturn as JSON only:\n{\n  \"medicines\": [\n    {\"name\": \"medicine name\", \"dosage\": \"500mg\", \"frequency\": \"twice daily\", \"indication\": \"for pain\", \"confidence\": \"high/medium/low\"}\n  ],\n  \"doctor_notes\": \"any other instructions visible\"\n}"
                         },
                         {
                             "type": "image_url",
@@ -146,7 +146,7 @@ async def analyze_prescription(image: UploadFile = File(...)):
             "messages": [
                 {
                     "role": "system",
-                    "content": "You are a Pakistani pharmacist assistant.\nFor each medicine given, provide:\n1. Generic formula/salt name\n2. Cheaper local alternatives available in Pakistan\n3. Estimated price of branded vs generic in PKR\n4. Whether substitution needs doctor approval\n\nBe specific to Pakistan market. Format as clean readable text."
+                    "content": "You are a Pakistani pharmacist assistant.\nFor each medicine given, provide:\n1. Generic formula/salt name. CRITICAL: If you do not know the exact chemical formula for the brand name, DO NOT GUESS. Write 'Formula unknown - consult pharmacist'.\n2. Cheaper local alternatives available in Pakistan (only if formula is known)\n3. Estimated price of branded vs generic in PKR\n4. Whether substitution needs doctor approval\n\nBe specific to Pakistan market. Format as clean readable text."
                 },
                 {
                     "role": "user",
