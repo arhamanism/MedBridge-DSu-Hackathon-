@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prescription OCR Test</title>
+</head>
+<body>
+    <h2>Prescription OCR Test</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <button id="uploadBtn">Upload & Analyze</button>
+    <p id="status">Ready</p>
+    
+    <h3>Extracted Medicines (JSON):</h3>
+    <pre id="extractedResult" style="background: #f4f4f4; padding: 10px;"></pre>
+    
+    <h3>Generic Alternatives:</h3>
+    <pre id="alternativesResult" style="background: #f4f4f4; padding: 10px;"></pre>
+
+    <script>
+        const API_URL = "http://localhost:8000/prescription";
+
+        document.getElementById("uploadBtn").onclick = async () => {
+            const fileInput = document.getElementById("imageInput");
+            if (fileInput.files.length === 0) {
+                alert("Please select an image first!");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append("image", file);
+
+            document.getElementById("status").innerText = "Uploading and analyzing (this may take a few seconds)...";
+            document.getElementById("extractedResult").innerText = "";
+            document.getElementById("alternativesResult").innerText = "";
+            document.getElementById("uploadBtn").disabled = true;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.error) {
+                    document.getElementById("status").innerText = "Error analyzing image.";
+                    document.getElementById("extractedResult").innerText = JSON.stringify(result.details, null, 2);
+                } else {
+                    document.getElementById("status").innerText = "Success!";
+                    document.getElementById("extractedResult").innerText = result.extracted_medicines;
+                    document.getElementById("alternativesResult").innerText = result.generic_alternatives;
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById("status").innerText = "Failed to connect to the server.";
+            } finally {
+                document.getElementById("uploadBtn").disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>

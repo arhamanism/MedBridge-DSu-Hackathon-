@@ -1,3 +1,4 @@
+import base64
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from faster_whisper import WhisperModel
@@ -89,3 +90,80 @@ async def transcribe(audio: UploadFile = File(...)):
         "detected_language": info.language,
         "confidence": round(info.language_probability, 2)
     }
+
+@app.post("/prescription")
+async def analyze_prescription(image: UploadFile = File(...)):
+    # read image and convert to base64
+    image_data = await image.read()
+    base64_image = base64.b64encode(image_data).decode("utf-8")
+    
+    # Step 1 — extract medicine names using Groq Vision
+    extract_response = requests.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type": "application/json"
+        },
+        json={
+            "model": "llama-3.2-90b-vision-preview",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "This is a medical prescription. \nExtract all medicine names, dosages, and frequency.\nIf handwriting is unclear make your best guess.\nReturn as JSON only:\n{\n  \"medicines\": [\n    {\"name\": \"medicine name\", \"dosage\": \"500mg\", \"frequency\": \"twice daily\", \"confidence\": \"high/medium/low\"}\n  ],\n  \"doctor_notes\": \"any other instructions visible\"\n}"
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_image}"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "max_tokens": 1000,
+            "temperature": 0.1
+        }
+    )
+    
+    extract_data = extract_response.json()
+    if "choices" not in extract_data:
+        return {"error": "Failed to extract text from image", "details": extract_data}
+
+    extracted = extract_data["choices"][0]["message"]["content"]
+    
+    # Step 2 — find generic alternatives
+    alternatives_response = requests.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type": "application/json"
+        },
+        json={
+            "model": "llama-3.3-70b-versatile",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a Pakistani pharmacist assistant.\nFor each medicine given, provide:\n1. Generic formula/salt name\n2. Cheaper local alternatives available in Pakistan\n3. Estimated price of branded vs generic in PKR\n4. Whether substitution needs doctor approval\n\nBe specific to Pakistan market. Format as clean readable text."
+                },
+                {
+                    "role": "user",
+                    "content": f"Find generic alternatives for these medicines: {extracted}"
+                }
+            ]
+        }
+    )
+    
+    alternatives_data = alternatives_response.json()
+    if "choices" not in alternatives_data:
+        alternatives = "Could not fetch alternatives at this time."
+    else:
+        alternatives = alternatives_data["choices"][0]["message"]["content"]
+    
+    return {
+        "extracted_medicines": extracted,
+        "generic_alternatives": alternatives
+    }
+
