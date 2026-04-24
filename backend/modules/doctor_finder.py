@@ -9,6 +9,34 @@ load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def recommend_specialist(text: str) -> dict:
+    # First check if the text contains actual symptoms
+    symptom_keywords = [
+        'pain', 'dard', 'khujli', 'itch', 'fever', 'buukhar', 'cough', 'khaansi', 
+        'cold', 'zukam', 'headache', 'sar dard', 'stomach', 'pet', 'nausea', 'ulti',
+        'vomiting', 'diarrhea', 'dast', 'weakness', 'kamzori', 'fatigue', 'thakan',
+        'rash', 'allergy', 'swelling', 'soojan', 'burning', 'jalan', 'bleeding',
+        'blood', 'khoon', 'breathing', 'saans', 'chest', 'sinthi', 'heart', 'dil',
+        'back', 'kamar', 'neck', 'gardan', 'eye', 'aankh', 'ear', 'kaan', 'nose',
+        'naak', 'throat', 'galay', 'skin', 'jild', 'bone', 'haddi', 'joint',
+        'joint pain', 'arthritis', 'diabetes', 'sugar', 'blood pressure',
+        'bp', 'thyroid', 'kidney', 'liver', 'lungs'
+    ]
+    
+    text_lower = text.lower()
+    has_symptoms = any(keyword in text_lower for keyword in symptom_keywords)
+    
+    # Also check for very short or generic greetings
+    if len(text.strip()) < 5 or text_lower in ['hello', 'hi', 'assalam', 'salam', 'hello hello', 'hi hi']:
+        has_symptoms = False
+    
+    if not has_symptoms:
+        return {
+            "summary": "No specific symptoms detected",
+            "specialists": [],
+            "why_this_saves_you_money": [],
+            "disclaimer": "Please describe your symptoms to get specialist recommendations."
+        }
+    
     prompt = f"""You are a medical AI assistant for Pakistani users. The user may write in English or Roman Urdu.
 
 Based on these symptoms: "{text}"

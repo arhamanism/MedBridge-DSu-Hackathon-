@@ -142,8 +142,48 @@ export function SpecialistRecommender({ userInput = "" }: SpecialistRecommenderP
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // If no initial userInput, show a message asking for symptoms
+  if (!userInput.trim()) {
+    return (
+      <div className="flex flex-col h-full overflow-y-auto">
+        <div className="px-6 py-5 text-center" style={{ backgroundColor: '#136382' }}>
+          <h2 className="text-white text-2xl">Specialist Finder</h2>
+          <p className="text-white/90 text-sm mt-1">
+            Describe your symptoms to find the right doctor
+          </p>
+        </div>
+        <div className="flex-1 flex items-center justify-center px-6">
+          <div className="text-center">
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+              style={{ backgroundColor: '#D1EBEF' }}
+            >
+              <Stethoscope className="w-8 h-8" style={{ color: '#136382' }} />
+            </div>
+            <h3 className="mb-2" style={{ color: '#136382' }}>
+              No symptoms provided
+            </h3>
+            <p className="text-gray-600 text-sm">
+              Please go back and describe your symptoms first to get specialist recommendations
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const handleSubmit = async () => {
-    if (!input.trim()) return;
+    if (!input.trim()) {
+      setError("Please describe your symptoms first to find the right specialist");
+      return;
+    }
+    
+    // Check if input is too short or doesn't contain symptom keywords
+    if (input.trim().length < 5) {
+      setError("Please provide more detail about your symptoms");
+      return;
+    }
+    
     setLoading(true);
     setError("");
     setResult(null);
@@ -157,7 +197,19 @@ export function SpecialistRecommender({ userInput = "" }: SpecialistRecommenderP
 
       if (!res.ok) throw new Error("Server error");
       const data: SpecialistResponse = await res.json();
-      setResult(data);
+      
+      // Only show results if we actually got meaningful data
+      if (data.specialists && data.specialists.length > 0) {
+        setResult(data);
+      } else {
+        // Show the "no symptoms" message instead of error
+        setResult({
+          summary: data.summary || "No specific symptoms detected",
+          specialists: [],
+          why_this_saves_you_money: [],
+          disclaimer: data.disclaimer || "Please describe your symptoms to get specialist recommendations."
+        });
+      }
     } catch (err) {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -214,6 +266,24 @@ export function SpecialistRecommender({ userInput = "" }: SpecialistRecommenderP
             </p>
           </div>
 
+          {/* No Specialists Message */}
+          {result.specialists.length === 0 && (
+            <div className="text-center py-8">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                style={{ backgroundColor: '#D1EBEF' }}
+              >
+                <Stethoscope className="w-8 h-8" style={{ color: '#136382' }} />
+              </div>
+              <h3 className="mb-2" style={{ color: '#136382' }}>
+                No symptoms mentioned
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Nothing to recommend. Please describe your symptoms to get specialist recommendations
+              </p>
+            </div>
+          )}
+
           {/* Specialist Cards */}
           {result.specialists.map((specialist, idx) => (
             <div
@@ -263,18 +333,20 @@ export function SpecialistRecommender({ userInput = "" }: SpecialistRecommenderP
             </div>
           ))}
 
-          {/* Why This Saves You Money */}
-          <div className="bg-white rounded-[32px] p-6">
-            <h3 className="mb-3 flex items-center gap-2" style={{ color: '#136382' }}>
-              <Star className="w-6 h-6" style={{ color: '#26A68A' }} />
-              Why This Saves You Money
-            </h3>
-            <div className="space-y-2 text-sm text-gray-700 leading-relaxed">
-              {result.why_this_saves_you_money.map((point, idx) => (
-                <p key={idx}>✓ {point}</p>
-              ))}
+          {/* Why This Saves You Money - Only show if there are specialists */}
+          {result.specialists.length > 0 && (
+            <div className="bg-white rounded-[32px] p-6">
+              <h3 className="mb-3 flex items-center gap-2" style={{ color: '#136382' }}>
+                <Star className="w-6 h-6" style={{ color: '#26A68A' }} />
+                Why This Saves You Money
+              </h3>
+              <div className="space-y-2 text-sm text-gray-700 leading-relaxed">
+                {result.why_this_saves_you_money.map((point, idx) => (
+                  <p key={idx}>✓ {point}</p>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Disclaimer */}
           <p className="text-xs text-center text-gray-400 px-4">

@@ -126,10 +126,40 @@ interface GoOrStayResult {
   disclaimer: string;
 }
 
-export function DecisionEngine({ userInput = "stomach pain and fever" }: DecisionEngineProps) {
+export function DecisionEngine({ userInput = "" }: DecisionEngineProps) {
   const [result, setResult] = useState<GoOrStayResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // If no initial userInput, show a message asking for symptoms
+  if (!userInput.trim()) {
+    return (
+      <div className="flex flex-col h-full overflow-y-auto">
+        <div className="px-6 py-5 text-center" style={{ backgroundColor: '#136382' }}>
+          <h2 className="text-white text-2xl">Go or Stay Home</h2>
+          <p className="text-white/90 text-sm mt-1">
+            Describe your symptoms to get medical guidance
+          </p>
+        </div>
+        <div className="flex-1 flex items-center justify-center px-6">
+          <div className="text-center">
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+              style={{ backgroundColor: '#D1EBEF' }}
+            >
+              <AlertCircle className="w-8 h-8" style={{ color: '#136382' }} />
+            </div>
+            <h3 className="mb-2" style={{ color: '#136382' }}>
+              No symptoms provided
+            </h3>
+            <p className="text-gray-600 text-sm">
+              Please go back and describe your symptoms first to get medical guidance
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const analyze = async () => {
     setLoading(true);
@@ -195,84 +225,107 @@ export function DecisionEngine({ userInput = "stomach pain and fever" }: Decisio
         {/* Result */}
         {result && (
           <>
-            {/* Verdict Card */}
-            <div
-              className="rounded-[32px] p-8 shadow-lg border-4"
-              style={{
-                backgroundColor: verdict === 'stay' ? '#26A68A' : '#d4183d',
-                borderColor: verdict === 'stay' ? '#1a7a5e' : '#b01530'
-              }}
-            >
-              <div className="flex items-center justify-center mb-4">
+            {/* No Symptoms Detected Case */}
+            {result.reasons.includes("No specific symptoms detected") && (
+              <div className="text-center py-8">
                 <div
-                  className="w-24 h-24 rounded-full flex items-center justify-center shadow-xl"
-                  style={{ backgroundColor: verdict === 'stay' ? '#E2F9D3' : '#ffe0e0' }}
+                  className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                  style={{ backgroundColor: '#D1EBEF' }}
                 >
-                  {verdict === 'stay'
-                    ? <CheckCircle2 className="w-16 h-16" style={{ color: '#26A68A' }} />
-                    : <XCircle className="w-16 h-16" style={{ color: '#d4183d' }} />
-                  }
+                  <AlertCircle className="w-8 h-8" style={{ color: '#136382' }} />
                 </div>
+                <h3 className="mb-2" style={{ color: '#136382' }}>
+                  No symptoms mentioned
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Nothing to analyze. Please describe your symptoms to get medical guidance
+                </p>
               </div>
-              <h2 className="text-4xl text-center mb-3 text-white uppercase tracking-wide">
-                {verdict === 'stay' ? 'STAY HOME' : 'GO TO HOSPITAL NOW'}
-              </h2>
-              <p className="text-center text-white text-xl">
-                {verdict === 'stay' ? 'Monitor symptoms & rest' : 'Immediate medical attention needed'}
-              </p>
-            </div>
+            )}
+
+            {/* Normal Result Case */}
+            {!result.reasons.includes("No specific symptoms detected") && (
+              <>
+                {/* Verdict Card */}
+                <div
+                  className="rounded-[32px] p-8 shadow-lg border-4"
+                  style={{
+                    backgroundColor: verdict === 'stay' ? '#26A68A' : '#d4183d',
+                    borderColor: verdict === 'stay' ? '#1a7a5e' : '#b01530'
+                  }}
+                >
+                  <div className="flex items-center justify-center mb-4">
+                    <div
+                      className="w-24 h-24 rounded-full flex items-center justify-center shadow-xl"
+                      style={{ backgroundColor: verdict === 'stay' ? '#E2F9D3' : '#ffe0e0' }}
+                    >
+                      {verdict === 'stay'
+                        ? <CheckCircle2 className="w-16 h-16" style={{ color: '#26A68A' }} />
+                        : <XCircle className="w-16 h-16" style={{ color: '#d4183d' }} />
+                      }
+                    </div>
+                  </div>
+                  <h2 className="text-4xl text-center mb-3 text-white uppercase tracking-wide">
+                    {verdict === 'stay' ? 'STAY HOME' : 'GO TO HOSPITAL NOW'}
+                  </h2>
+                  <p className="text-center text-white text-xl">
+                    {verdict === 'stay' ? 'Monitor symptoms & rest' : 'Immediate medical attention needed'}
+                  </p>
+                </div>
 
             {/* Severity Indicator */}
-            <div className="bg-white rounded-[32px] p-6">
-              <h3 className="mb-4" style={{ color: '#136382' }}>Severity Level</h3>
-              <div className="flex items-center gap-4">
-                <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all"
-                    style={{
-                      width: severity === 'low' ? '33%' : severity === 'moderate' ? '66%' : '100%',
-                      backgroundColor: severity === 'low' ? '#26A68A' : severity === 'moderate' ? '#FFA500' : '#d4183d'
-                    }}
-                  />
-                </div>
-                <span className="text-base capitalize" style={{ color: '#136382' }}>
-                  {result.urgency}
-                </span>
-              </div>
-            </div>
-
-            {/* Reasons */}
-            <div className="bg-white rounded-[32px] p-6 shadow-sm">
-              <h3 className="mb-5 flex items-center gap-2 text-xl" style={{ color: '#136382' }}>
-                <AlertCircle className="w-6 h-6" />
-                Why This Decision?
-              </h3>
-              <div className="space-y-4">
-                {result.reasons.map((reason, index) => (
-                  <div key={index} className="flex gap-4">
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white"
-                      style={{ backgroundColor: verdict === 'stay' ? '#26A68A' : '#d4183d' }}
-                    >
-                      {index + 1}
+                <div className="bg-white rounded-[32px] p-6">
+                  <h3 className="mb-4" style={{ color: '#136382' }}>Severity Level</h3>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: severity === 'low' ? '33%' : severity === 'moderate' ? '66%' : '100%',
+                          backgroundColor: severity === 'low' ? '#26A68A' : severity === 'moderate' ? '#FFA500' : '#d4183d'
+                        }}
+                      />
                     </div>
-                    <p className="text-gray-800 leading-relaxed text-base pt-1">{reason}</p>
+                    <span className="text-base capitalize" style={{ color: '#136382' }}>
+                      {result.urgency}
+                    </span>
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            {/* Disclaimer */}
-            <p className="text-center text-xs text-gray-400 px-4 pb-2">{result.disclaimer}</p>
+                {/* Reasons */}
+                <div className="bg-white rounded-[32px] p-6 shadow-sm">
+                  <h3 className="mb-5 flex items-center gap-2 text-xl" style={{ color: '#136382' }}>
+                    <AlertCircle className="w-6 h-6" />
+                    Why This Decision?
+                  </h3>
+                  <div className="space-y-4">
+                    {result.reasons.map((reason, index) => (
+                      <div key={index} className="flex gap-4">
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white"
+                          style={{ backgroundColor: verdict === 'stay' ? '#26A68A' : '#d4183d' }}
+                        >
+                          {index + 1}
+                        </div>
+                        <p className="text-gray-800 leading-relaxed text-base pt-1">{reason}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-            {/* Analyze Again */}
-            <button
-              onClick={() => { setResult(null); setError(null); }}
-              className="w-full py-3 rounded-[32px] border-2 text-sm font-medium transition-opacity hover:opacity-80"
-              style={{ borderColor: '#136382', color: '#136382' }}
-            >
-              Analyze Again
-            </button>
+                {/* Disclaimer */}
+                <p className="text-center text-xs text-gray-400 px-4 pb-2">{result.disclaimer}</p>
+
+                {/* Analyze Again */}
+                <button
+                  onClick={() => { setResult(null); setError(null); }}
+                  className="w-full py-3 rounded-[32px] border-2 text-sm font-medium transition-opacity hover:opacity-80"
+                  style={{ borderColor: '#136382', color: '#136382' }}
+                >
+                  Analyze Again
+                </button>
+              </>
+            )}
           </>
         )}
       </div>

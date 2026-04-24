@@ -333,201 +333,224 @@ export function MedicationChecker() {
         {/* Safety Result */}
         {checked && result && (
           <>
-            <div
-              className="rounded-[32px] p-6 shadow-lg border-4"
-              style={{
-                backgroundColor: isSafe ? '#26A68A' : '#d4183d',
-                borderColor: isSafe ? '#1a7a5e' : '#b01530'
-              }}
-            >
-              <div className="flex items-center gap-4">
+            {/* No Medicines Detected Case */}
+            {result.summary === "No valid medicines detected" && (
+              <div className="text-center py-8">
                 <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg"
+                  className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                  style={{ backgroundColor: '#D1EBEF' }}
+                >
+                  <Pill className="w-8 h-8" style={{ color: '#136382' }} />
+                </div>
+                <h3 className="mb-2" style={{ color: '#136382' }}>
+                  No medicines found
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Nothing to check. Please enter actual medicine names to check for interactions
+                </p>
+              </div>
+            )}
+
+            {/* Normal Result Case */}
+            {result.summary !== "No valid medicines detected" && (
+              <>
+                <div
+                  className="rounded-[32px] p-6 shadow-lg border-4"
                   style={{
-                    backgroundColor: isSafe ? '#E2F9D3' : '#ffe0e0'
+                    backgroundColor: isSafe ? '#26A68A' : '#d4183d',
+                    borderColor: isSafe ? '#1a7a5e' : '#b01530'
                   }}
                 >
-                  {isSafe ? (
-                    <CheckCircle className="w-10 h-10" style={{ color: '#26A68A' }} />
-                  ) : (
-                    <AlertTriangle className="w-10 h-10 text-red-500" />
-                  )}
-                </div>
-                <div>
-                  <h3 className="text-2xl text-white mb-1">
-                    {isSafe ? 'SAFE TO TAKE' : 'WARNING - INTERACTIONS FOUND'}
-                  </h3>
-                  <p className="text-white/90 text-sm">
-                    {result.summary}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Interaction Details */}
-            {result.interactions.length > 0 && (
-              <div className="bg-white rounded-[32px] p-6">
-                <h3 className="mb-4" style={{ color: '#136382' }}>Interaction Details</h3>
-                <div className="space-y-3">
-                  {result.interactions.map((interaction, idx) => (
+                  <div className="flex items-center gap-4">
                     <div
-                      key={idx}
-                      className="p-4 rounded-[24px] border-l-4"
+                      className="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg"
                       style={{
-                        backgroundColor: interaction.risk === 'high' ? '#ffe0e0' :
-                          interaction.risk === 'medium' ? '#fff4e0' : '#E2F9D3',
-                        borderColor: interaction.risk === 'high' ? '#d4183d' :
-                          interaction.risk === 'medium' ? '#FFA500' : '#26A68A'
+                        backgroundColor: isSafe ? '#E2F9D3' : '#ffe0e0'
                       }}
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium" style={{ color: '#136382' }}>
-                          {interaction.drug1} + {interaction.drug2}
-                        </span>
-                        <span
-                          className="px-3 py-1 rounded-full text-xs uppercase tracking-wide text-white"
+                      {isSafe ? (
+                        <CheckCircle className="w-10 h-10" style={{ color: '#26A68A' }} />
+                      ) : (
+                        <AlertTriangle className="w-10 h-10 text-red-500" />
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-2xl text-white mb-1">
+                        {isSafe ? 'SAFE TO TAKE' : 'WARNING - INTERACTIONS FOUND'}
+                      </h3>
+                      <p className="text-white/90 text-sm">
+                        {result.summary}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+            {/* Interaction Details */}
+                {result.interactions.length > 0 && (
+                  <div className="bg-white rounded-[32px] p-6">
+                    <h3 className="mb-4" style={{ color: '#136382' }}>Interaction Details</h3>
+                    <div className="space-y-3">
+                      {result.interactions.map((interaction, idx) => (
+                        <div
+                          key={idx}
+                          className="p-4 rounded-[24px] border-l-4"
                           style={{
-                            backgroundColor: interaction.risk === 'high' ? '#d4183d' :
+                            backgroundColor: interaction.risk === 'high' ? '#ffe0e0' :
+                              interaction.risk === 'medium' ? '#fff4e0' : '#E2F9D3',
+                            borderColor: interaction.risk === 'high' ? '#d4183d' :
                               interaction.risk === 'medium' ? '#FFA500' : '#26A68A'
                           }}
                         >
-                          {interaction.risk} risk
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-700">{interaction.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Find Alternatives Button - Only shows after safety check */}
-            {!showAlternatives && !alternativesLoading && (
-              <button
-                onClick={findAlternatives}
-                className="w-full px-6 py-4 rounded-[28px] border-2 text-lg font-medium transition-all"
-                style={{ borderColor: '#26A68A', color: '#26A68A' }}
-              >
-                <span className="flex items-center justify-center gap-2">
-                  Find Generic Alternatives
-                  <ArrowRight className="w-5 h-5" />
-                </span>
-              </button>
-            )}
-
-            {/* Alternatives Loading */}
-            {alternativesLoading && (
-              <div className="flex flex-col items-center justify-center py-6 space-y-2">
-                <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#26A68A' }} />
-                <p className="text-gray-500 text-sm">Finding cheaper alternatives...</p>
-              </div>
-            )}
-
-            {/* Alternatives Result */}
-            {showAlternatives && alternatives && (
-              <>
-                {alternatives.alternatives.length === 0 ? (
-                  /* No alternatives found - already generic */
-                  <div
-                    className="rounded-[32px] p-6 shadow-sm border-2"
-                    style={{ backgroundColor: '#D1EBEF', borderColor: '#136382' }}
-                  >
-                    <div className="flex items-center gap-3 mb-4">
-                      <div
-                        className="w-12 h-12 rounded-[16px] flex items-center justify-center"
-                        style={{ backgroundColor: '#136382' }}
-                      >
-                        <CheckCircle className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl" style={{ color: '#136382' }}>
-                          Already Using Generics!
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          Your medicines are already cost-effective options.
-                        </p>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-500 text-center">
-                      {alternatives.disclaimer}
-                    </p>
-                  </div>
-                ) : (
-                  /* Alternatives found */
-                  <div
-                    className="rounded-[32px] p-6 shadow-sm border-2"
-                    style={{ backgroundColor: '#E2F9D3', borderColor: '#26A68A' }}
-                  >
-                    <div className="flex items-center gap-3 mb-4">
-                      <div
-                        className="w-12 h-12 rounded-[16px] flex items-center justify-center"
-                        style={{ backgroundColor: '#26A68A' }}
-                      >
-                        <CheckCircle className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl" style={{ color: '#136382' }}>
-                          Generic Alternatives
-                        </h3>
-                        <p className="text-sm" style={{ color: '#26A68A' }}>
-                          Total savings: {alternatives.total_savings}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      {alternatives.alternatives.map((alt, idx) => (
-                        <div key={idx} className="bg-white rounded-[20px] p-4">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-medium" style={{ color: '#136382' }}>
-                              {alt.original}
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium" style={{ color: '#136382' }}>
+                              {interaction.drug1} + {interaction.drug2}
                             </span>
-                            <span className="text-sm text-gray-500 line-through">
-                              {alt.original_price}
+                            <span
+                              className="px-3 py-1 rounded-full text-xs uppercase tracking-wide text-white"
+                              style={{
+                                backgroundColor: interaction.risk === 'high' ? '#d4183d' :
+                                  interaction.risk === 'medium' ? '#FFA500' : '#26A68A'
+                              }}
+                            >
+                              {interaction.risk} risk
                             </span>
                           </div>
-                          {alt.original_ingredient && (
-                            <p className="text-xs text-gray-400 mb-2">
-                              Contains: {alt.original_ingredient}
-                            </p>
-                          )}
-                          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                            <span className="text-sm font-medium" style={{ color: '#26A68A' }}>
-                              {alt.generic}
-                            </span>
-                            <span className="font-medium" style={{ color: '#26A68A' }}>
-                              {alt.generic_price}
-                            </span>
-                          </div>
-                          <div className="mt-2 text-xs px-2 py-1 rounded bg-green-50 inline-block" style={{ color: '#26A68A' }}>
-                            Save {alt.savings_percent}%
-                          </div>
+                          <p className="text-sm text-gray-700">{interaction.description}</p>
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
 
-                    <div className="mt-4 p-3 rounded-[16px] border-2 border-orange-300 bg-orange-50">
-                      <div className="flex items-start gap-2">
-                        <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
-                        <p className="text-xs text-orange-700 font-medium">
+                {/* Find Alternatives Button - Only shows after safety check */}
+                {!showAlternatives && !alternativesLoading && (
+                  <button
+                    onClick={findAlternatives}
+                    className="w-full px-6 py-4 rounded-[28px] border-2 text-lg font-medium transition-all"
+                    style={{ borderColor: '#26A68A', color: '#26A68A' }}
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      Find Generic Alternatives
+                      <ArrowRight className="w-5 h-5" />
+                    </span>
+                  </button>
+                )}
+
+                {/* Alternatives Loading */}
+                {alternativesLoading && (
+                  <div className="flex flex-col items-center justify-center py-6 space-y-2">
+                    <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#26A68A' }} />
+                    <p className="text-gray-500 text-sm">Finding cheaper alternatives...</p>
+                  </div>
+                )}
+
+                {/* Alternatives Result */}
+                {showAlternatives && alternatives && (
+                  <>
+                    {alternatives.alternatives.length === 0 ? (
+                      /* No alternatives found - already generic */
+                      <div
+                        className="rounded-[32px] p-6 shadow-sm border-2"
+                        style={{ backgroundColor: '#D1EBEF', borderColor: '#136382' }}
+                      >
+                        <div className="flex items-center gap-3 mb-4">
+                          <div
+                            className="w-12 h-12 rounded-[16px] flex items-center justify-center"
+                            style={{ backgroundColor: '#136382' }}
+                          >
+                            <CheckCircle className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="text-xl" style={{ color: '#136382' }}>
+                              Already Using Generics!
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              Your medicines are already cost-effective options.
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-500 text-center">
                           {alternatives.disclaimer}
                         </p>
                       </div>
-                    </div>
-                  </div>
+                    ) : (
+                      /* Alternatives found */
+                      <div
+                        className="rounded-[32px] p-6 shadow-sm border-2"
+                        style={{ backgroundColor: '#E2F9D3', borderColor: '#26A68A' }}
+                      >
+                        <div className="flex items-center gap-3 mb-4">
+                          <div
+                            className="w-12 h-12 rounded-[16px] flex items-center justify-center"
+                            style={{ backgroundColor: '#26A68A' }}
+                          >
+                            <CheckCircle className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="text-xl" style={{ color: '#136382' }}>
+                              Generic Alternatives
+                            </h3>
+                            <p className="text-sm" style={{ color: '#26A68A' }}>
+                              Total savings: {alternatives.total_savings}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          {alternatives.alternatives.map((alt, idx) => (
+                            <div key={idx} className="bg-white rounded-[20px] p-4">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-medium" style={{ color: '#136382' }}>
+                                  {alt.original}
+                                </span>
+                                <span className="text-sm text-gray-500 line-through">
+                                  {alt.original_price}
+                                </span>
+                              </div>
+                              {alt.original_ingredient && (
+                                <p className="text-xs text-gray-400 mb-2">
+                                  Contains: {alt.original_ingredient}
+                                </p>
+                              )}
+                              <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                                <span className="text-sm font-medium" style={{ color: '#26A68A' }}>
+                                  {alt.generic}
+                                </span>
+                                <span className="font-medium" style={{ color: '#26A68A' }}>
+                                  {alt.generic_price}
+                                </span>
+                              </div>
+                              <div className="mt-2 text-xs px-2 py-1 rounded bg-green-50 inline-block" style={{ color: '#26A68A' }}>
+                                Save {alt.savings_percent}%
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="mt-4 p-3 rounded-[16px] border-2 border-orange-300 bg-orange-50">
+                          <div className="flex items-start gap-2">
+                            <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
+                            <p className="text-xs text-orange-700 font-medium">
+                              {alternatives.disclaimer}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
+
+                {/* Disclaimer */}
+                <div className="p-4 rounded-[16px] border-2 border-orange-300 bg-orange-50 mx-4">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-orange-700 font-medium">
+                      {result.disclaimer}
+                    </p>
+                  </div>
+                </div>
               </>
             )}
-
-            {/* Disclaimer */}
-            <div className="p-4 rounded-[16px] border-2 border-orange-300 bg-orange-50 mx-4">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-orange-700 font-medium">
-                  {result.disclaimer}
-                </p>
-              </div>
-            </div>
           </>
         )}
       </div>

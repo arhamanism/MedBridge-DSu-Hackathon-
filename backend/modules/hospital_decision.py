@@ -9,6 +9,38 @@ load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def check_go_or_stay(text: str) -> dict:
+    # First check if the text contains actual symptoms
+    symptom_keywords = [
+        'pain', 'dard', 'khujli', 'itch', 'fever', 'buukhar', 'cough', 'khaansi', 
+        'cold', 'zukam', 'headache', 'sar dard', 'stomach', 'pet', 'nausea', 'ulti',
+        'vomiting', 'diarrhea', 'dast', 'weakness', 'kamzori', 'fatigue', 'thakan',
+        'rash', 'allergy', 'swelling', 'soojan', 'burning', 'jalan', 'bleeding',
+        'blood', 'khoon', 'breathing', 'saans', 'chest', 'sinthi', 'heart', 'dil',
+        'back', 'kamar', 'neck', 'gardan', 'eye', 'aankh', 'ear', 'kaan', 'nose',
+        'naak', 'throat', 'galay', 'skin', 'jild', 'bone', 'haddi', 'joint',
+        'joint pain', 'arthritis', 'diabetes', 'sugar', 'blood pressure',
+        'bp', 'thyroid', 'kidney', 'liver', 'lungs'
+    ]
+    
+    text_lower = text.lower()
+    has_symptoms = any(keyword in text_lower for keyword in symptom_keywords)
+    
+    # Also check for very short or generic inputs
+    if len(text.strip()) < 3 or text_lower in ['hello', 'hi', 'assalam', 'salam', 'hello hello', 'hi hi', 'gi']:
+        has_symptoms = False
+    
+    if not has_symptoms:
+        return {
+            "verdict": "STAY",
+            "urgency": "Can wait",
+            "reasons": [
+                "No specific symptoms detected",
+                "Please describe your symptoms for proper assessment",
+                "Medical advice requires specific symptom information"
+            ],
+            "disclaimer": "Please describe your symptoms to get a proper medical assessment."
+        }
+    
     prompt = f"""You are a medical AI assistant for Pakistani users. The user may write in English or Roman Urdu.
 
 Based on these symptoms: "{text}"

@@ -10,6 +10,54 @@ client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 
 def check_medications(medicines: list[str]) -> dict:
+    # First check if the medicines list contains actual medicine names
+    medicine_keywords = [
+        'panadol', 'paracetamol', 'acetaminophen', 'brufen', 'ibuprofen', 'aspirin',
+        'disprin', 'cataflam', 'diclofenac', 'voltaren', 'arcoxia', 'etoricoxib',
+        'calpol', 'tylenol', 'advil', 'motrin', 'aleve', 'naproxen', 'mefenamic',
+        'ponstan', 'augmentin', 'amoxicillin', 'azithromycin', 'zithromax',
+        'ciprofloxacin', 'cipro', 'levofloxacin', 'ofloxacin', 'flagyl',
+        'metronidazole', 'clarithromycin', 'erythromycin', 'doxycycline',
+        'ampicillin', 'penicillin', 'cephalexin', 'clindamycin', 'tetracycline',
+        'gaviscon', 'digene', 'omeprazole', 'nexium', 'pantoprazole', 'ranitidine',
+        'zantac', 'antacid', 'lansoprazole', 'esomeprazole', 'rabeprazole',
+        'metformin', 'glucophage', 'insulin', 'glyburide', 'glipizide',
+        'actos', 'pioglitazone', 'januvia', 'sitagliptin', 'farxiga',
+        'losartan', 'cozaar', 'valsartan', 'diovan', 'lisinopril', 'zestril',
+        'atenolol', 'tenormin', 'metoprolol', 'lopressor', 'propranolol',
+        'amlodipine', 'norvasc', 'nifedipine', 'adalat', 'diltiazem',
+        'atorvastatin', 'lipitor', 'simvastatin', 'zocor', 'rosuvastatin',
+        'crestor', 'hydrochlorothiazide', 'furosemide', 'lasix', 'spironolactone',
+        'warfarin', 'coumadin', 'clopidogrel', 'plavix', 'heparin',
+        'vitamin', 'supplement', 'calcium', 'iron', 'folic', 'zinc',
+        'cough', 'syrup', 'benadryl', 'diphenhydramine', 'cetirizine',
+        'zyrtec', 'loratadine', 'claritin', 'fexofenadine', 'allegra',
+        'salbutamol', 'ventolin', 'seretide', 'symbicort', 'pulmicort'
+    ]
+    
+    # Check if any medicine name contains actual medicine keywords
+    has_medicines = False
+    for med in medicines:
+        med_lower = med.lower().strip()
+        if len(med_lower) < 2 or med_lower in ['j', 'a', 'x', 'z', 'hello', 'hi']:
+            continue
+        # Check if it contains medicine keywords
+        if any(keyword in med_lower for keyword in medicine_keywords):
+            has_medicines = True
+            break
+        # Also accept longer inputs that might be medicine names
+        elif len(med_lower) >= 3:
+            has_medicines = True
+            break
+    
+    if not has_medicines:
+        return {
+            "is_safe": True,
+            "interactions": [],
+            "summary": "No valid medicines detected",
+            "disclaimer": "Please enter actual medicine names to check for interactions."
+        }
+    
     medicines_str = ", ".join(medicines)
 
     prompt = f"""You are a medical AI assistant for Pakistani users.
