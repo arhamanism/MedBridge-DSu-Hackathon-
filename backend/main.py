@@ -17,10 +17,9 @@ from modules.medicine_safety import check_medications
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 
-# Load Whisper model once at startup
-print("Loading Whisper model...")
-model = WhisperModel("small", device="cpu", compute_type="int8")
-print("Whisper ready.")
+# Note: Whisper model disabled for Render compatibility
+# Voice input will be handled client-side or with a different approach
+print("HealthAI Pakistan API starting (CPU mode)...")
 
 
 app = FastAPI(title="MedBridge API")
