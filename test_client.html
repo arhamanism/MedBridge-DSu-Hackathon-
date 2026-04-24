@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mic Test</title>
+</head>
+<body>
+    <h2>Voice Test</h2>
+    <button id="start">🎤 Start Recording</button>
+    <button id="stop" disabled>⏹ Stop</button>
+    <p id="status">Ready</p>
+    <p id="result"></p>
+
+    <script>
+        // replace with your laptop IP from ipconfig
+        const API_URL = "http://localhost:8000/transcribe";
+
+        let recorder, chunks = [];
+
+        document.getElementById("start").onclick = async () => {
+            chunks = [];
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            recorder = new MediaRecorder(stream);
+            
+            recorder.ondataavailable = e => chunks.push(e.data);
+            
+            recorder.onstop = async () => {
+                document.getElementById("status").innerText = "Sending to server...";
+                
+                const blob = new Blob(chunks, { type: "audio/webm" });
+                const formData = new FormData();
+                formData.append("audio", blob, "recording.webm");
+
+                try {
+                    const res = await fetch(API_URL, {
+                        method: "POST",
+                        body: formData
+                    });
+                    const data = await res.json();
+                    document.getElementById("status").innerText = "Done!";
+                    document.getElementById("result").innerHTML = `
+                        <b>Transcript:</b> ${data.transcript}<br>
+                        <b>Raw:</b> ${data.raw}<br>
+                        <b>Language:</b> ${data.detected_language} (${data.confidence})<br>
+                    `;
+                } catch(err) {
+                    document.getElementById("status").innerText = "Error: " + err.message;
+                }
+            };
+
+            recorder.start();
+            document.getElementById("start").disabled = true;
+            document.getElementById("stop").disabled = false;
+            document.getElementById("status").innerText = "Recording...";
+        };
+
+        document.getElementById("stop").onclick = () => {
+            recorder.stop();
+            document.getElementById("start").disabled = false;
+            document.getElementById("stop").disabled = true;
+        };
+    </script>
+</body>
+</html>
