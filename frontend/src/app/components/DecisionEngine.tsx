@@ -115,6 +115,8 @@
 import { useState } from "react";
 import { AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 
+const BACKEND_URL = import.meta.env.VITE_API_BASE_URL;
+
 interface DecisionEngineProps {
   userInput?: string;
 }
@@ -165,7 +167,7 @@ export function DecisionEngine({ userInput = "" }: DecisionEngineProps) {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("http://127.0.0.1:8000/go-or-stay", {
+      const response = await fetch(`${BACKEND_URL}/go-or-stay`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: userInput }),

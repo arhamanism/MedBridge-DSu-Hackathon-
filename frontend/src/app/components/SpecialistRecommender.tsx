@@ -117,6 +117,8 @@
 import { useState } from 'react';
 import { Stethoscope, Phone, Star, Loader2 } from 'lucide-react';
 
+const BACKEND_URL = import.meta.env.VITE_API_BASE_URL;
+
 interface Specialist {
   name: string;
   match_percentage: number;
@@ -189,7 +191,7 @@ export function SpecialistRecommender({ userInput = "" }: SpecialistRecommenderP
     setResult(null);
 
     try {
-      const res = await fetch("http://localhost:8000/specialist", {
+      const res = await fetch(`${BACKEND_URL}/specialist`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: input }),

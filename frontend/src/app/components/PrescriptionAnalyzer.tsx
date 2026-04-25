@@ -14,7 +14,7 @@ interface PrescriptionResponse {
   generic_alternatives: string;
 }
 
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = import.meta.env.VITE_API_BASE_URL;
 
 export function PrescriptionAnalyzer() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);

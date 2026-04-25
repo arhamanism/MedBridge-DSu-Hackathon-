@@ -30,7 +30,7 @@ interface AlternativesResponse {
   disclaimer: string;
 }
 
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = import.meta.env.VITE_API_BASE_URL;
 
 export function MedicationChecker() {
   const [medications, setMedications] = useState<string[]>([]);
